@@ -1,23 +1,23 @@
 /* 
-https://docs.google.com/document/d/1D9FnLSTTJiW6ZAOU5xMwptPnyI26wqv3jOI9cPlMKmo/edit
 
 Archivos necesarios:
   - etapa1.mp4 : video informativo sobre el fenomeno del niño
   - etapa2.mp4 : video informativo sobre el plan de reconstruccion con cambios
   - etapa3.mp4 : video informativo sobre el actual fenomeno del niño
 
-
+ETAPA 0
+  - Espera a que se active un sensor
 ETAPA 1 - ANTECEDENTES
-  - Proyección 'etapa1.mp4'sobre la pared izquierda
-
-  
+  - Se activa el sensor 1 y arduino envía a processing la cadena "1"
+  - Proyección 'etapa1.mp4'sobre la pared
 ETAPA 2 - RECONSTRUCCIÓN CON CAMBIOS
-  - Proyección 'etapa2.mp4' sobre la pared izquierda
-
+  - Se activa el sensor 1 y arduino envía a processing la cadena "2"
+  - Proyección 'etapa2.mp4' sobre la pared
 ETAPA 3 - ACTUALIDAD
-  - Proyección 'etapa3.mp4' sobre la pared izquierda
+  - Se activa el sensor 1 y arduino envía a processing la cadena "3"
+  - Proyección 'etapa3.mp4' sobre la pared
   
- 
+Para probar SOLO EL PROCESSING se puede usar las teclas 1 2 y 3 para reproducir los videos y la letra x minuscula para cerrarlos.
 */
  
  // Importamos bibliotecas:
@@ -34,13 +34,13 @@ Movie video_etapa3;
  
 
 /* posiciones de inicio de los videos */
-int PosVideo_X = 0;
+int PosVideo_X = 280;
 int PosVideo_Y = 0;
 
 /* tamaño del video */
-int TamañoVideo_Y = 1080;
-int TamañoVideo_X = 1920;
-String nombre_puerto ="COM5";
+int TamañoVideo_Y = 720;
+int TamañoVideo_X = 720;
+String nombre_puerto ="COM6";
 
 boolean ignore_new_orders = false;
 
@@ -51,8 +51,8 @@ int etapa;
 void setup(){
   
   // Configuramos ventana
-  //size(1280, 720);
-  fullScreen();
+  size(1280, 720);
+  //fullScreen();
   // Asignamos archivos a objetos
   println("Cargando archivos ...");
   video_etapa1 = new Movie(this, "etapa1.mp4");
@@ -92,7 +92,7 @@ void draw(){
       if(is_movie_finished(video_etapa1)){
         detenerVideosTodos();
         etapa = 0;
-        ignore_new_orders = false;
+        ignore_new_orders = false; //desbloqueamos la actualizacion de etapas
       } 
     break;    
     case 2:
@@ -102,7 +102,7 @@ void draw(){
       if(is_movie_finished(video_etapa2)){
         detenerVideosTodos();
         etapa = 0;
-        ignore_new_orders = false;
+        ignore_new_orders = false;//desbloqueamos la actualizacion de etapas
       }
 
     break;
@@ -112,7 +112,7 @@ void draw(){
       if(is_movie_finished(video_etapa3)){
         detenerVideosTodos();
         etapa = 0;
-        ignore_new_orders = false;
+        ignore_new_orders = false;//desbloqueamos la actualizacion de etapas
       } 
     break;
   }
@@ -130,13 +130,14 @@ void leerPuertoSerial(){
     mensaje_llegado = puertoSerial.readString();
     println("sensor activado:"+mensaje_llegado);
 
+    /* verificamos que haya un mensaje llegando de arduino */
     if(mensaje_llegado != null && !mensaje_llegado.equals("0")){
       int nueva_etapa = Integer.parseInt(mensaje_llegado);
-      
+      //Verificamos que se pueda cambiar la etapa y que la nueva etapa sea distinta a la actual
       if(!ignore_new_orders && etapa != nueva_etapa){
         detenerVideosTodos();
         etapa = nueva_etapa; 
-        ignore_new_orders = true;
+        ignore_new_orders = true; //bloqueamos la actualizacion de etapas
       }
     }
   }
@@ -144,13 +145,14 @@ void leerPuertoSerial(){
 }
 
 
-/* Este evento sería remplazado por la llegada de la señal desde arduino */
+
 void keyPressed(){
   
+  /* para que no se reproduzca un video sobre otro (no avanzar de etapa si se esta reproduciendo) */
   if(!ignore_new_orders){
     if(key == '1' || key == '2' || key == '3'){
       etapa = Integer.parseInt(str(key));
-      ignore_new_orders = true;
+      ignore_new_orders = true; //bloqueamos la actualizacion de etapas
     }
   }
 
@@ -161,19 +163,16 @@ void keyPressed(){
     switch (etapa) {
       case 1:
         etapa = 0;  
-       
         break;
       case 2:
         etapa = 0;  
-        
         break;
       case 3:
         etapa = 0;  
-       
         break;
     }
-    ignore_new_orders = false;
-
+    ignore_new_orders = false;//desbloqueamos la actualizacion de etapas
+ 
   }
 
 }
